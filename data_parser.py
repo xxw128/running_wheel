@@ -13,8 +13,20 @@ sns.set(style='whitegrid', palette=colors, rc={'axes.labelsize': 16})
 
 import bokeh
 
+def lightdark(data):
+
+    """Determine light/dark condition based on time index"""
+
+    data.loc[data.index.hour.isin(range(7,20)), 'lightdark'] = 'light'
+    data.loc[data.index.hour.isin([20,21,22,23,0,1,2,3,4,5,6]), 'lightdark'] = 'dark'
+    return data
+
+
+# define file to be processed
+fname = '2017_0628_c57.csv'
+
 # Load in the headers
-with open('2017_0602_0626_qxn.csv') as fhandle:
+with open(fname) as fhandle:
     line_1 = fhandle.readline().rstrip()
     mouse_id = line_1.split(',')[1:len(line_1)]
     line_2 = fhandle.readline().rstrip()
@@ -24,14 +36,8 @@ with open('2017_0602_0626_qxn.csv') as fhandle:
 
 # Load in the data to values_df
 col_names= ['time'] + mouse_id
-values_df = pd.read_csv('2017_0602_0626_qxn.csv', skiprows=3,
+values_df = pd.read_csv(fname, skiprows=3,
                         header=None, names=col_names)
-
-
-# convert time to pd.datetime objects
-time_parsed = pd.to_datetime(values_df['time'], format='%m/%d/%Y %I:%M:%S %p',
-                             infer_datetime_format=True)
-values_df['time'] = time_parsed
 
 # DataFrame mouse_df to store mouse info
 mouse_id = pd.Series(mouse_id)
@@ -40,12 +46,29 @@ sensor_type = pd.Series(sensor_type)
 mouse_df = pd.DataFrame({'mouse_id': mouse_id, 'group': group,
                         'sensor_type': sensor_type})
 
-# Melt dataframe
-values_df = pd.melt(values_df, id_vars='time', var_name='mouse_id',
-                    value_name='activity(rev)')
+# use parsed time as index
+time_parsed = pd.to_datetime(values_df['time'], format='%m/%d/%Y %I:%M:%S %p',
+                             infer_datetime_format=True)
+values_df['time'] = time_parsed
+values_df.index = values_df['time']
 
-# Merge with mouse_df
-tidy_df = pd.merge(mouse_df,values_df)
+#Resample
+rule = '1h'
+resampled_df = values_df.resample(rule, label='left').sum()
+resampled_df['time'] = resampled_df.index
 
-# Write out DataFrame
-tidy_df.to_csv('2017_0602_0626_qxn_tidy.csv', index=False)
+# Write DataFrame
+fout_mouse = fname.split('.')[0] + '_mouse_info.csv'
+fout_value = fname.split('.')[0] + '_values.csv'
+fout_resampled = fname.split('.')[0] + '_values_' + rule + '.csv'
+mouse_df.to_csv(fout_mouse, index=False)
+values_df.to_csv(fout_value)
+resampled_df.to_csv(fout_resampled)
+
+# tidy data
+melt_data = pd.melt(resampled_df, id_vars='time', var_name='mouse_id',
+               value_name='rev_in_1hr')
+merge_data = pd.merge(mouse_df, melt_data)
+merge_data.index = merge_data['time']
+tidy_data = lightdark(merge_data)
+tidy_data.to_csv('tidy_data.csv')
