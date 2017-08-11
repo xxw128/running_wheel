@@ -1,3 +1,5 @@
-2017_0602_0626_qxn.csv
-2017_0602_0626_qxn_tidy.csv
+
+*.csv
 .ipynb_checkpoints/
+.DS_Store
+__pycache__/
