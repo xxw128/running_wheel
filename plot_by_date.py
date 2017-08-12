@@ -29,7 +29,7 @@ data_3 = data.loc[data['group']=='lps-5', :]
 data_4 = data.loc[data['group']=='lps-10', :]
 
 # Set up plot area
-fig, (ax1, ax2, ax3, ax4) = plt.subplots(4,1, figsize=(10,7.5), sharex=True)
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4,1, figsize=(15,7.5), sharex=True)
 
 # Plot each group
 ax1.set_ylabel('Rev in 1 hr')
