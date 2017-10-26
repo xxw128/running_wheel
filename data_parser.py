@@ -1,17 +1,6 @@
 import numpy as np
 import pandas as pd
 
-# import bootcamp_utils
-
-# # Plotting modules and settings.
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-#           '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-#           '#bcbd22', '#17becf']
-# sns.set(style='whitegrid', palette=colors, rc={'axes.labelsize': 16})
-#
-# import bokeh
 
 def lightdark(data):
 
@@ -59,9 +48,10 @@ resampled_df = values_df.resample(rule, label='left').sum()
 resampled_df['time'] = resampled_df.index
 
 # Write DataFrame
-fout_mouse = fname.split('.')[0] + '_mouse_info.csv'
-fout_value = fname.split('.')[0] + '_values.csv'
-fout_resampled = fname.split('.')[0] + '_values_' + rule + '.csv'
+prefix = fname.split('.')[0]
+fout_mouse = prefix + '_mouse_info.csv'
+fout_value = prefix + '_values.csv'
+fout_resampled = prefix + '_values_' + rule + '.csv'
 mouse_df.to_csv(fout_mouse, index=False)
 values_df.to_csv(fout_value)
 resampled_df.to_csv(fout_resampled)
@@ -72,4 +62,4 @@ melt_data = pd.melt(resampled_df, id_vars='time', var_name='mouse_id',
 merge_data = pd.merge(mouse_df, melt_data)
 merge_data.index = merge_data['time']
 tidy_data = lightdark(merge_data)
-tidy_data.to_csv('tidy_data.csv')
+tidy_data.to_csv(prefix+'_tidy_data.csv')
